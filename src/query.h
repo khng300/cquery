@@ -368,6 +368,12 @@ struct QueryDatabase {
                            size_t symbol_index,
                            const std::string& short_name,
                            const std::string& detailed_name);
+
+  // Query the indexing structure to look up symbol id for given Usr.
+  QueryFileId GetQueryFileIdFromPath(const std::string& path);
+  QueryTypeId GetQueryTypeIdFromUsr(Usr usr);
+  QueryFuncId GetQueryFuncIdFromUsr(Usr usr);
+  QueryVarId GetQueryVarIdFromUsr(const Usr& usr);
 };
 
 struct IdMap {

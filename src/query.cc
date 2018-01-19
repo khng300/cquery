@@ -21,7 +21,8 @@ namespace {
 
 template <typename T>
 void VerifyUnique(const std::vector<T>& values0) {
-  // FIXME: Run on a big code-base for a while and verify no assertions are triggered.
+// FIXME: Run on a big code-base for a while and verify no assertions are
+// triggered.
 #if false
   auto values = values0;
   std::sort(values.begin(), values.end());
@@ -278,70 +279,70 @@ QueryFile::Def BuildFileDef(const IdMap& id_map, const IndexFile& indexed) {
 
 }  // namespace
 
-QueryFileId GetQueryFileIdFromPath(QueryDatabase* query_db,
-                                   const std::string& path) {
-  auto it = query_db->usr_to_file.find(LowerPathIfCaseInsensitive(path));
-  if (it != query_db->usr_to_file.end())
+QueryFileId QueryDatabase::GetQueryFileIdFromPath(const std::string& path) {
+  auto it = usr_to_file.find(LowerPathIfCaseInsensitive(path));
+  if (it != usr_to_file.end())
     return QueryFileId(it->second.id);
 
-  size_t idx = query_db->files.size();
-  query_db->usr_to_file[LowerPathIfCaseInsensitive(path)] =
-      QueryFileId(idx);
-  query_db->files.push_back(QueryFile(path));
+  size_t idx = files.size();
+  usr_to_file[LowerPathIfCaseInsensitive(path)] = QueryFileId(idx);
+  files.push_back(QueryFile(path));
   return QueryFileId(idx);
 }
 
-QueryTypeId GetQueryTypeIdFromUsr(QueryDatabase* query_db, Usr usr) {
-  auto it = query_db->usr_to_type.find(usr);
-  if (it != query_db->usr_to_type.end())
+QueryTypeId QueryDatabase::GetQueryTypeIdFromUsr(Usr usr) {
+  auto it = usr_to_type.find(usr);
+  if (it != usr_to_type.end())
     return QueryTypeId(it->second.id);
 
-  size_t idx = query_db->types.size();
-  query_db->usr_to_type[usr] = QueryTypeId(idx);
-  query_db->types.push_back(QueryType(usr));
+  size_t idx = types.size();
+  usr_to_type[usr] = QueryTypeId(idx);
+  types.push_back(QueryType(usr));
   return QueryTypeId(idx);
 }
 
-QueryFuncId GetQueryFuncIdFromUsr(QueryDatabase* query_db, Usr usr) {
-  auto it = query_db->usr_to_func.find(usr);
-  if (it != query_db->usr_to_func.end())
+QueryFuncId QueryDatabase::GetQueryFuncIdFromUsr(Usr usr) {
+  auto it = usr_to_func.find(usr);
+  if (it != usr_to_func.end())
     return QueryFuncId(it->second.id);
 
-  size_t idx = query_db->funcs.size();
-  query_db->usr_to_func[usr] = QueryFuncId(idx);
-  query_db->funcs.push_back(QueryFunc(usr));
+  size_t idx = funcs.size();
+  usr_to_func[usr] = QueryFuncId(idx);
+  funcs.push_back(QueryFunc(usr));
   return QueryFuncId(idx);
 }
 
-QueryVarId GetQueryVarIdFromUsr(QueryDatabase* query_db, const Usr& usr) {
-  auto it = query_db->usr_to_var.find(usr);
-  if (it != query_db->usr_to_var.end())
+QueryVarId QueryDatabase::GetQueryVarIdFromUsr(const Usr& usr) {
+  auto it = usr_to_var.find(usr);
+  if (it != usr_to_var.end())
     return QueryVarId(it->second.id);
 
-  size_t idx = query_db->vars.size();
-  query_db->usr_to_var[usr] = QueryVarId(idx);
-  query_db->vars.push_back(QueryVar(usr));
+  size_t idx = vars.size();
+  usr_to_var[usr] = QueryVarId(idx);
+  vars.push_back(QueryVar(usr));
   return QueryVarId(idx);
 }
 
 IdMap::IdMap(QueryDatabase* query_db, const IdCache& local_ids)
     : local_ids(local_ids) {
   // LOG_S(INFO) << "Creating IdMap for " << local_ids.primary_file;
-  primary_file = GetQueryFileIdFromPath(query_db, local_ids.primary_file);
+  primary_file =
+      query_db->GetQueryFileIdFromPath(local_ids.primary_file, false);
 
   cached_type_ids_.resize(local_ids.type_id_to_usr.size());
   for (const auto& entry : local_ids.type_id_to_usr)
     cached_type_ids_[entry.first] =
-        GetQueryTypeIdFromUsr(query_db, entry.second);
+        query_db->GetQueryTypeIdFromUsr(entry.second, false);
 
   cached_func_ids_.resize(local_ids.func_id_to_usr.size());
   for (const auto& entry : local_ids.func_id_to_usr)
     cached_func_ids_[entry.first] =
-        GetQueryFuncIdFromUsr(query_db, entry.second);
+        query_db->GetQueryFuncIdFromUsr(entry.second, false);
 
   cached_var_ids_.resize(local_ids.var_id_to_usr.size());
   for (const auto& entry : local_ids.var_id_to_usr)
-    cached_var_ids_[entry.first] = GetQueryVarIdFromUsr(query_db, entry.second);
+    cached_var_ids_[entry.first] =
+        query_db->GetQueryVarIdFromUsr(entry.second, false);
 }
 
 QueryLocation IdMap::ToQuery(Range range) const {
@@ -715,7 +716,7 @@ void QueryDatabase::RemoveUsrs(SymbolKind usr_kind,
   switch (usr_kind) {
     case SymbolKind::File: {
       // FIXME
-      //for (const Usr& usr : to_remove)
+      // for (const Usr& usr : to_remove)
       //  files[usr_to_file[usr].id].def = nullopt;
       break;
     }
@@ -898,12 +899,12 @@ TEST_SUITE("query") {
     IndexFile previous("foo.cc", nullopt);
     IndexFile current("foo.cc", nullopt);
 
-    previous.Resolve(previous.ToTypeId(HashUsr("usr1")))->def.definition_spelling =
-        Range(Position(1, 0));
-    previous.Resolve(previous.ToFuncId(HashUsr("usr2")))->def.definition_spelling =
-        Range(Position(2, 0));
-    previous.Resolve(previous.ToVarId(HashUsr("usr3")))->def.definition_spelling =
-        Range(Position(3, 0));
+    previous.Resolve(previous.ToTypeId(HashUsr("usr1")))
+        ->def.definition_spelling = Range(Position(1, 0));
+    previous.Resolve(previous.ToFuncId(HashUsr("usr2")))
+        ->def.definition_spelling = Range(Position(2, 0));
+    previous.Resolve(previous.ToVarId(HashUsr("usr3")))
+        ->def.definition_spelling = Range(Position(3, 0));
 
     IndexUpdate update = GetDelta(previous, current);
 
