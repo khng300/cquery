@@ -279,10 +279,13 @@ QueryFile::Def BuildFileDef(const IdMap& id_map, const IndexFile& indexed) {
 
 }  // namespace
 
-QueryFileId QueryDatabase::GetQueryFileIdFromPath(const std::string& path) {
+QueryFileId QueryDatabase::GetQueryFileIdFromPath(const std::string& path,
+                                                  bool no_insert) {
   auto it = usr_to_file.find(LowerPathIfCaseInsensitive(path));
   if (it != usr_to_file.end())
     return QueryFileId(it->second.id);
+  if (no_insert)
+    return QueryFileId(QueryFileId::INVALID_ID);
 
   size_t idx = files.size();
   usr_to_file[LowerPathIfCaseInsensitive(path)] = QueryFileId(idx);
@@ -290,10 +293,12 @@ QueryFileId QueryDatabase::GetQueryFileIdFromPath(const std::string& path) {
   return QueryFileId(idx);
 }
 
-QueryTypeId QueryDatabase::GetQueryTypeIdFromUsr(Usr usr) {
+QueryTypeId QueryDatabase::GetQueryTypeIdFromUsr(Usr usr, bool no_insert) {
   auto it = usr_to_type.find(usr);
   if (it != usr_to_type.end())
     return QueryTypeId(it->second.id);
+  if (no_insert)
+    return QueryTypeId(QueryTypeId::INVALID_ID);
 
   size_t idx = types.size();
   usr_to_type[usr] = QueryTypeId(idx);
@@ -301,10 +306,12 @@ QueryTypeId QueryDatabase::GetQueryTypeIdFromUsr(Usr usr) {
   return QueryTypeId(idx);
 }
 
-QueryFuncId QueryDatabase::GetQueryFuncIdFromUsr(Usr usr) {
+QueryFuncId QueryDatabase::GetQueryFuncIdFromUsr(Usr usr, bool no_insert) {
   auto it = usr_to_func.find(usr);
   if (it != usr_to_func.end())
     return QueryFuncId(it->second.id);
+  if (no_insert)
+    return QueryFuncId(QueryFuncId::INVALID_ID);
 
   size_t idx = funcs.size();
   usr_to_func[usr] = QueryFuncId(idx);
@@ -312,10 +319,12 @@ QueryFuncId QueryDatabase::GetQueryFuncIdFromUsr(Usr usr) {
   return QueryFuncId(idx);
 }
 
-QueryVarId QueryDatabase::GetQueryVarIdFromUsr(const Usr& usr) {
+QueryVarId QueryDatabase::GetQueryVarIdFromUsr(const Usr& usr, bool no_insert) {
   auto it = usr_to_var.find(usr);
   if (it != usr_to_var.end())
     return QueryVarId(it->second.id);
+  if (no_insert)
+    return QueryVarId(QueryVarId::INVALID_ID);
 
   size_t idx = vars.size();
   usr_to_var[usr] = QueryVarId(idx);

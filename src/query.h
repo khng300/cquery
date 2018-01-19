@@ -370,10 +370,12 @@ struct QueryDatabase {
                            const std::string& detailed_name);
 
   // Query the indexing structure to look up symbol id for given Usr.
-  QueryFileId GetQueryFileIdFromPath(const std::string& path);
-  QueryTypeId GetQueryTypeIdFromUsr(Usr usr);
-  QueryFuncId GetQueryFuncIdFromUsr(Usr usr);
-  QueryVarId GetQueryVarIdFromUsr(const Usr& usr);
+  // If |no_insert| is true, in case the given Usr does not exist
+  // in the indexing structure, |INVALID_ID| will be returned
+  QueryFileId GetQueryFileIdFromPath(const std::string& path, bool no_insert);
+  QueryTypeId GetQueryTypeIdFromUsr(Usr usr, bool no_insert);
+  QueryFuncId GetQueryFuncIdFromUsr(Usr usr, bool no_insert);
+  QueryVarId GetQueryVarIdFromUsr(const Usr& usr, bool no_insert);
 };
 
 struct IdMap {

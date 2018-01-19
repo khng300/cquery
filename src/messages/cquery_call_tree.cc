@@ -190,9 +190,9 @@ struct CqueryCallTreeExpandHandler
     out.id = request->id;
 
     // FIXME
-    auto func_id = db->usr_to_func.find(std::stoull(request->params.usr));
-    if (func_id != db->usr_to_func.end())
-      out.result = BuildExpandCallTree(db, working_files, func_id->second);
+    QueryFuncId func_id = db->GetQueryFuncIdFromUsr(std::stoull(request->params.usr), true);
+    if (func_id.id != QueryFuncId::INVALID_ID)
+      out.result = BuildExpandCallTree(db, working_files, func_id);
 
     QueueManager::WriteStdout(IpcId::CqueryCallTreeExpand, out);
   }
